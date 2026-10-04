@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Karmic Wheel – Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f2e8;--card:#fffaf0;--ink:#2b2540;--mut:#7a7390;--line:#e6dcc6;--S:#c99a2e;--R:#d9552f;--T:#5b5fa8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15112a;--card:#1f1a3a;--ink:#f1ebdc;--mut:#9d96b8;--line:#322b52;--S:#e3b84d;--R:#f0714a;--T:#8e92e0}}
+:root[data-theme="dark"]{--bg:#15112a;--card:#1f1a3a;--ink:#f1ebdc;--mut:#9d96b8;--line:#322b52;--S:#e3b84d;--R:#f0714a;--T:#8e92e0}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100%}
+#app{max-width:440px;margin:0 auto;padding:18px 16px 96px}
+h1,h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0}
+h1{font-size:28px}h2{font-size:21px;margin:18px 0 8px}
+.sub{color:var(--mut);font-size:13px;margin:2px 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
+svg.wheel{width:100%;max-width:320px;display:block;margin:6px auto 0}
+.score{font-family:"Cormorant Garamond",Georgia,serif;font-size:40px;fill:var(--ink)}
+.lbl{font-size:10px;fill:var(--mut);letter-spacing:.12em}
+.legend{display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--mut);margin-top:4px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:var(--c)}
+.task{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.task:last-child{border:0}
+.task.done .tx{opacity:.55;text-decoration:line-through}
+.tx{flex:1;font-size:15px}
+.ck{width:28px;height:28px;border-radius:50%;border:2px solid var(--c);background:transparent;color:#fff;font-size:15px;cursor:pointer;padding:0}
+.done .ck{background:var(--c)}
+.chip{border:1px solid var(--c);color:var(--c);background:transparent;border-radius:99px;font-size:11px;padding:3px 9px;cursor:pointer}
+.msg{display:flex;gap:10px;align-items:flex-start}
+.msg b{display:block;font-size:15px}.msg span{font-size:13px;color:var(--mut)}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:4px 0 10px}
+.bar i{display:block;height:100%;background:var(--c);border-radius:99px;transition:width .4s}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.sw{width:46px;height:26px;border-radius:99px;border:0;background:var(--line);position:relative;cursor:pointer}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--S)}.sw.on::after{left:23px}
+.quote{font-family:"Cormorant Garamond",Georgia,serif;font-size:19px;line-height:1.35;font-style:italic}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 12px calc(10px + env(safe-area-inset-bottom,0px))}
+nav div{display:flex;width:100%;max-width:440px;gap:6px}
+nav button{flex:1;border:0;background:transparent;color:var(--mut);padding:8px;border-radius:10px;font-size:13px;cursor:pointer}
+nav button.on{background:var(--line);color:var(--ink);font-weight:600}
+#sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:none;z-index:5;box-shadow:0 -10px 30px rgba(0,0,0,.25)}
+#sheet .in{max-width:440px;margin:0 auto}
+#sheet button{display:block;width:100%;margin-top:8px;padding:11px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:14px;cursor:pointer}
+</style></head><body>
+<div id="app"></div><div id="sheet"></div>
+<script>
+const G={S:{n:'Sattvic',c:'var(--S)',base:70},R:{n:'Rajasic',c:'var(--R)',base:108},T:{n:'Tamasic',c:'var(--T)',base:36}};
+const goals=[{id:'a',name:'Build financial independence',tag:'Artha'},{id:'b',name:'A strong, healthy body',tag:'Dharma'},{id:'c',name:'A steady mind',tag:'Moksha'}];
+let tasks=[
+{id:1,name:'Review monthly budget',g:'R',goal:'a'},{id:2,name:'30 mins learning market trends',g:'S',goal:'a'},{id:3,name:'Deep work block (90 min)',g:'R',goal:'a'},
+{id:4,name:'Workout session',g:'R',goal:'b'},{id:5,name:'Cook a healthy meal',g:'S',goal:'b'},
+{id:6,name:'Meditate for 10 minutes',g:'S',goal:'c'},{id:7,name:'Help someone without being asked',g:'S',goal:'c'},
+{id:8,name:'No doomscrolling before noon',g:'T',goal:null},{id:9,name:'Start the hard task now, not later',g:'T',goal:null}
+].map(t=>({...t,done:false}));
+let view='today',nish=true,logs=[];
+const frac=k=>{const a=tasks.filter(t=>t.g===k);return a.length?a.filter(t=>t.done).length/a.length:0};
+function bal(){const s=frac('S'),r=frac('R');return{s,r,score:s+r===0?null:Math.round(100*(1-Math.abs(s-r))*(.5+(s+r)/4))}}
+function msg(b){if(b.score===null)return['Begin where you are','Complete an action to set the wheel turning.'];if(b.r-b.s>.34)return['Leaning toward burnout','Lots of drive, little restoration. Add one Sattvic action.'];if(b.s-b.r>.34)return['Calm, but not yet moving','Pair your stillness with one Rajasic task.'];return['In balance','Drive and inner peace are walking together.']}
+function wheel(b){let h='';for(const k of['T','S','R']){const ts=tasks.filter(t=>t.g===k),n=ts.filter(t=>t.done).length,r=G[k].base+n*4,off=k==='S'?20:k==='T'?45:0;
+h+=`<circle cx="150" cy="150" r="${r}" fill="none" stroke="${G[k].c}" stroke-opacity=".4" stroke-dasharray="${k==='T'?'3 4':'0'}"/>`;
+ts.forEach((t,i)=>{h+=`<ellipse cx="150" cy="${150-r}" rx="5" ry="9" transform="rotate(${off+i*360/ts.length} 150 150)" fill="${t.done?G[k].c:'none'}" stroke="${G[k].c}" stroke-opacity="${t.done?1:.45}"/>`})}
+h+=`<text class="score" x="150" y="156" text-anchor="middle">${b.score===null?'–':b.score}</text><text class="lbl" x="150" y="172" text-anchor="middle">BALANCE</text>`;
+return`<svg class="wheel" viewBox="0 0 300 300">${h}</svg>`}
+function item(t){return`<div class="task ${t.done?'done':''}"><button class="ck" style="--c:${G[t.g].c}" onclick="tog(${t.id})" aria-label="complete">${t.done?'✓':''}</button><div class="tx">${t.name}</div><button class="chip" style="--c:${G[t.g].c}" onclick="cyc(${t.id})">${G[t.g].n}</button></div>`}
+function tog(id){const t=tasks.find(x=>x.id===id);t.done=!t.done;if(t.done&&nish)sheet(t);render()}
+function cyc(id){const t=tasks.find(x=>x.id===id);t.g={S:'R',R:'T',T:'S'}[t.g];render()}
+function sheet(t){const s=document.getElementById('sheet');s.style.display='block';
+s.innerHTML=`<div class="in"><h2 style="margin-top:0">Nishkama check-in</h2><p class="sub">"${t.name}" is done. How attached are you to its result?</p><button onclick="lg(1)">Clinging to the outcome</button><button onclick="lg(2)">Mostly free of it</button><button onclick="lg(3)">Fully detached — I just acted</button><button onclick="lg(0)" style="color:var(--mut)">Skip</button></div>`}
+function lg(n){if(n)logs.push(n);document.getElementById('sheet').style.display='none';render()}
+function today(b){const m=msg(b);let h=wheel(b)+`<div class="legend">${['S','R','T'].map(k=>`<span><i class="dot" style="--c:${G[k].c}"></i>${G[k].n}</span>`).join('')}</div>`;
+h+=`<div class="card msg"><i class="dot" style="--c:${b.score===null?'var(--mut)':m[0]==='In balance'?'var(--S)':'var(--R)'};margin-top:6px"></i><div><b>${m[0]}</b><span>${m[1]}</span></div></div>`;
+for(const k of['S','R','T']){h+=`<h2>${G[k].n}${k==='T'?' <span class="sub" style="font-family:system-ui">· check when you resist</span>':''}</h2><div class="card" style="margin-top:0">${tasks.filter(t=>t.g===k).map(item).join('')||'<span class="sub">No actions tagged</span>'}</div>`}return h}
+function goalsV(){return goals.map(g=>{const ts=tasks.filter(t=>t.goal===g.id),d=ts.filter(t=>t.done).length;
+return`<div class="card"><div class="row"><div><b>${g.name}</b><div class="sub">Sankalpa · ${g.tag}</div></div><span class="sub">${d}/${ts.length}</span></div><div class="bar" style="--c:var(--S);margin-top:10px"><i style="width:${ts.length?d/ts.length*100:0}%"></i></div>${ts.map(item).join('')}</div>`}).join('')}
+function reflect(b){const avg=logs.length?logs.reduce((a,c)=>a+c,0)/logs.length:null,lab=avg===null?'No check-ins yet':avg<1.7?'Still clinging':avg<2.5?'Loosening your grip':'Acting freely';
+return`<div class="card"><p class="quote" style="margin:0">Your right is to the action alone, never to its fruits.</p><div class="sub" style="margin-top:6px">Bhagavad Gita, paraphrased</div></div>
+<div class="card"><div class="row"><div><b>Nishkama prompt</b><div class="sub">Ask about attachment after each action</div></div><button class="sw ${nish?'on':''}" onclick="nish=!nish;render()" aria-label="toggle"></button></div></div>
+<div class="card"><b>Detachment</b><div class="sub">${lab}${logs.length?` · ${logs.length} check-in${logs.length>1?'s':''}`:''}</div><div class="bar" style="--c:var(--T);margin-top:10px"><i style="width:${avg===null?0:(avg-1)/2*100}%"></i></div></div>
+<div class="card"><b>Karmic balance</b><div class="sub" style="margin-bottom:12px">Rajasic drive vs Sattvic alignment</div>
+<div class="row"><span>Sattvic</span><span class="sub">${Math.round(b.s*100)}%</span></div><div class="bar" style="--c:var(--S)"><i style="width:${b.s*100}%"></i></div>
+<div class="row"><span>Rajasic</span><span class="sub">${Math.round(b.r*100)}%</span></div><div class="bar" style="--c:var(--R)"><i style="width:${b.r*100}%"></i></div>
+<div class="row"><span>Tamasic resisted</span><span class="sub">${Math.round(frac('T')*100)}%</span></div><div class="bar" style="--c:var(--T)"><i style="width:${frac('T')*100}%"></i></div><div class="sub">${msg(b)[0]}. ${msg(b)[1]}</div></div>`}
+function render(){const b=bal(),T={today:'Today',goals:'Sankalpas',reflect:'Reflect'};
+document.getElementById('app').innerHTML=`<h1>Karmic Wheel</h1><p class="sub">${T[view]==='Today'?'Act well. Release the result.':T[view]}</p>${view==='today'?today(b):view==='goals'?goalsV():reflect(b)}<nav><div>${Object.keys(T).map(k=>`<button class="${view===k?'on':''}" onclick="view='${k}';render();scrollTo(0,0)">${T[k]}</button>`).join('')}</div></nav>`}
+render();
+</script></body></html>
